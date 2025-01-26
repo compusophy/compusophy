@@ -1,55 +1,49 @@
-import NextDocument, {
-  type DocumentContext,
-  type DocumentInitialProps,
-  Head,
+/* eslint-disable sort-keys-fix/sort-keys-fix */
+/* eslint-disable react/jsx-sort-props */
+/* eslint-disable react/function-component-definition */
+import {
   Html,
+  Head,
   Main,
   NextScript,
+  type DocumentProps,
 } from "next/document";
-import { ServerStyleSheet } from "styled-components";
-import { DEFAULT_LOCALE } from "utils/constants";
+import { type ReactElement } from "react";
 
-const withStyledComponents = async (
-  ctx: DocumentContext
-): Promise<DocumentInitialProps> => {
-  const { renderPage } = ctx;
-  const sheet = new ServerStyleSheet();
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://compusophy.vercel.app";
 
-  try {
-    ctx.renderPage = () =>
-      renderPage({
-        enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />),
-      });
-
-    const { styles, ...initialProps } = await NextDocument.getInitialProps(ctx);
-
-    return {
-      ...initialProps,
-      styles: [styles, sheet.getStyleElement()],
-    };
-  } finally {
-    sheet.seal();
-  }
+const frame = {
+  version: "next",
+  imageUrl: `${appUrl}/opengraph-image`,
+  button: {
+    title: "launch",
+    action: {
+      type: "launch_frame",
+      name: "compusophy",
+      url: "https://compusophy.vercel.app",
+      splashImageUrl: `${appUrl}/splash.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
 };
 
-class Document extends NextDocument {
-  public static override async getInitialProps(
-    ctx: DocumentContext
-  ): Promise<DocumentInitialProps> {
-    return withStyledComponents(ctx);
-  }
-
-  public override render(): React.JSX.Element {
-    return (
-      <Html lang={DEFAULT_LOCALE}>
-        <Head />
-        <body>
-          <Main />
-          <NextScript />
-        </body>
-      </Html>
-    );
-  }
+export default function Document(_props: DocumentProps): ReactElement {
+  return (
+    <Html lang="en">
+      <Head>
+        <title>Compusophy</title>
+        <meta property="og:title" content="compusophy" />
+        <meta
+          property="og:description"
+          content="A Farcaster Frame for philosophical discussions"
+        />
+        <meta property="og:image" content={`${appUrl}/image.png`} />
+        <meta property="fc:frame" content={JSON.stringify(frame)} />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
 }
-
-export default Document;

@@ -12,6 +12,10 @@ const webpack = require("webpack");
  * @type {import("next").NextConfig}
  * */
 const nextConfig = {
+  transpilePackages: [
+    "@farcaster/frame-sdk",
+    "@farcaster/frame-wagmi-connector",
+  ],
   compiler: {
     reactRemoveProperties: isProduction,
     removeConsole: isProduction,
@@ -27,7 +31,6 @@ const nextConfig = {
   devIndicators: {
     buildActivityPosition: "top-right",
   },
-  output: "export",
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
   webpack: (config) => {
@@ -42,6 +45,12 @@ const nextConfig = {
           case "stream":
             resource.request = "readable-stream";
             break;
+          case "crypto":
+            resource.request = "crypto-browserify";
+            break;
+          case "async_hooks":
+            resource.request = "async_hooks-browserify";
+            break;
           default:
             throw new Error(`Not found ${mod}`);
         }
@@ -51,9 +60,16 @@ const nextConfig = {
       })
     );
 
-    config.resolve.fallback = config.resolve.fallback || {};
-    config.resolve.fallback.module = false;
-    config.resolve.fallback.perf_hooks = false;
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      module: false,
+      perf_hooks: false,
+      crypto: require.resolve("crypto-browserify"),
+      fs: false,
+      path: false,
+      stream: require.resolve("stream-browserify"),
+      async_hooks: false,
+    };
 
     config.module.parser.javascript = config.module.parser.javascript || {};
     config.module.parser.javascript.dynamicImportFetchPriority = "high";

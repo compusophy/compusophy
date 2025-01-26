@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { type ReactElement } from "react";
 import AppsLoader from "components/system/Apps/AppsLoader";
 import Desktop from "components/system/Desktop";
 import Taskbar from "components/system/Taskbar";
@@ -7,7 +7,7 @@ import useGlobalKeyboardShortcuts from "hooks/useGlobalKeyboardShortcuts";
 import useIFrameFocuser from "hooks/useIFrameFocuser";
 import useUrlLoader from "hooks/useUrlLoader";
 
-const Index = (): React.ReactElement => {
+const Index = (): ReactElement => {
   useIFrameFocuser();
   useUrlLoader();
   useGlobalKeyboardShortcuts();
@@ -21,4 +21,4 @@ const Index = (): React.ReactElement => {
   );
 };
 
-export default memo(Index);
+export default Index;
