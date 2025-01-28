@@ -25,7 +25,7 @@ export default async function Image() {
           justifyContent: "center",
         }}
       >
-        <h1>Compusophy</h1>
+        <h1>compusophy</h1>
       </div>
     ),
     {

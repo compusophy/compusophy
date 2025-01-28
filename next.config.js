@@ -15,6 +15,7 @@ const nextConfig = {
   transpilePackages: [
     "@farcaster/frame-sdk",
     "@farcaster/frame-wagmi-connector",
+    "@farcaster/frame-node"
   ],
   compiler: {
     reactRemoveProperties: isProduction,

@@ -29,9 +29,8 @@ const frame = {
 
 export default function Document(_props: DocumentProps): ReactElement {
   return (
-    <Html lang="en">
+    <Html lang="en" style={{ background: "#000000" }}>
       <Head>
-        <title>Compusophy</title>
         <meta property="og:title" content="compusophy" />
         <meta
           property="og:description"

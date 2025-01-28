@@ -1,6 +1,4 @@
 import { type AppProps } from "next/app";
-import { useEffect } from "react";
-import sdk from "@farcaster/frame-sdk";
 import dynamic from "next/dynamic";
 import { ErrorBoundary } from "components/pages/ErrorBoundary";
 import StyledApp from "components/pages/StyledApp";
@@ -15,16 +13,15 @@ const WagmiProvider = dynamic(
   { ssr: false }
 );
 
-const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      sdk.actions.ready();
-    }
-  }, []);
+const FrameProvider = dynamic(
+  () => import("contexts/frame").then((mod) => mod.FrameProvider),
+  { ssr: false }
+);
 
-  return (
-    <WagmiProvider>
-      <ViewportProvider>
+const App = ({ Component, pageProps }: AppProps): React.ReactElement => (
+  <WagmiProvider>
+    <ViewportProvider>
+      <FrameProvider>
         <ProcessProvider>
           <FileSystemProvider>
             <SessionProvider>
@@ -38,9 +35,9 @@ const App = ({ Component, pageProps }: AppProps): React.ReactElement => {
             </SessionProvider>
           </FileSystemProvider>
         </ProcessProvider>
-      </ViewportProvider>
-    </WagmiProvider>
-  );
-};
+      </FrameProvider>
+    </ViewportProvider>
+  </WagmiProvider>
+);
 
 export default App;

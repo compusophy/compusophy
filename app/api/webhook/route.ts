@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable unicorn/catch-error-name */
+/* eslint-disable typescript-sort-keys/interface */
+/* eslint-disable default-case */
 import {
-  type ParseWebhookEvent,
   parseWebhookEvent,
   verifyAppKeyWithNeynar,
 } from "@farcaster/frame-node";
@@ -11,13 +14,19 @@ import {
 import { sendFrameNotification } from "@/lib/notifs";
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const requestJson = (await request.json()) as Record<string, unknown>;
+  const requestJson = await request.json();
 
   let data;
   try {
     data = await parseWebhookEvent(requestJson, verifyAppKeyWithNeynar);
-  } catch (error_: unknown) {
-    const error = error_ as ParseWebhookEvent.ErrorType;
+  } catch (e: unknown) {
+    const error = e as { 
+      name: "VerifyJsonFarcasterSignature.InvalidDataError" | 
+            "VerifyJsonFarcasterSignature.InvalidEventDataError" |
+            "VerifyJsonFarcasterSignature.InvalidAppKeyError" |
+            "VerifyJsonFarcasterSignature.VerifyAppKeyError";
+      message: string;
+    };
 
     switch (error.name) {
       case "VerifyJsonFarcasterSignature.InvalidDataError":
@@ -34,12 +43,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       case "VerifyJsonFarcasterSignature.VerifyAppKeyError":
         return Response.json(
           { error: error.message, success: false },
-          { status: 500 }
-        );
-      default:
-        return Response.json(
-          { error: "Unknown error", success: false },
-          { status: 500 }
+          { status: 417 }
         );
     }
   }

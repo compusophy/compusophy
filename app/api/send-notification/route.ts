@@ -1,29 +1,24 @@
+import { notificationDetailsSchema } from "@farcaster/frame-sdk";
 import { type NextRequest } from "next/server";
 import { z } from "zod";
-import { setUserNotificationDetails } from "@/lib/kv";
-import { sendFrameNotification } from "@/lib/notifs";
-
-const notificationDetailsSchema = z.object({
-  token: z.string(),
-  url: z.string().url(),
-});
+import { setUserNotificationDetails } from "~/lib/kv";
+import { sendFrameNotification } from "~/lib/notifs";
 
 const requestSchema = z.object({
   fid: z.number(),
   notificationDetails: notificationDetailsSchema,
-});
+}) satisfies z.ZodType<{
+  fid: number;
+  notificationDetails: z.infer<typeof notificationDetailsSchema>;
+}>;
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const requestJson = (await request.json()) as unknown;
+  const requestJson = await request.json() as unknown;
   const requestBody = requestSchema.safeParse(requestJson);
 
   if (!requestBody.success) {
     return Response.json(
-      {
-        error: "Invalid request body",
-        errors: requestBody.error.errors,
-        success: false,
-      },
+      { errors: requestBody.error.errors, success: false },
       { status: 400 }
     );
   }
@@ -39,28 +34,19 @@ export async function POST(request: NextRequest): Promise<Response> {
     title: "Test notification",
   });
 
-  switch (sendResult.state) {
-    case "error":
-      return Response.json(
-        { error: sendResult.error, success: false },
-        { status: 500 }
-      );
-    case "rate_limit":
-      return Response.json(
-        { error: "Rate limited", success: false },
-        { status: 429 }
-      );
-    case "no_token":
-      return Response.json(
-        { error: "No notification token found", success: false },
-        { status: 400 }
-      );
-    case "success":
-      return Response.json({ success: true });
-    default:
-      return Response.json(
-        { error: "Unknown notification state", success: false },
-        { status: 500 }
-      );
+  if (sendResult.state === "error") {
+    return Response.json(
+      { error: sendResult.error, success: false },
+      { status: 500 }
+    );
   }
+  
+  if (sendResult.state === "rate_limit") {
+    return Response.json(
+      { error: "Rate limited", success: false },
+      { status: 429 }
+    );
+  }
+
+  return Response.json({ success: true });
 }

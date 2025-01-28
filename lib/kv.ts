@@ -3,7 +3,7 @@ import { ref, get, set, remove } from "firebase/database";
 import { db } from "@/lib/firebase";
 
 function getUserNotificationDetailsKey(fid: number): string {
-  return `frames-v2-demo/users/${fid}`;
+  return `compusophy/users/${fid}/notifications`;
 }
 
 export async function getUserNotificationDetails(
