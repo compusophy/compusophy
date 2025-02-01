@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode, type ReactElement } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode, type ReactElement } from "react";
 import sdk, { type Context } from "@farcaster/frame-sdk";
 
 interface FrameContextType {
@@ -16,16 +16,29 @@ export const FrameProvider = ({ children }: { children: ReactNode }): ReactEleme
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initFrame = async (): Promise<void> => {
+    const initFrame = async (): Promise<undefined> => {
+      let result: undefined;
       try {
         const context = await sdk.context;
+        
+        // If context or context.user is undefined, use default values
+        const effectiveContext = context?.user ? context : {
+          user: {
+            fid: 350911,
+            username: 'compusophy',
+          },
+          client: {
+            notificationDetails: undefined
+          }
+        };
+
         console.info("Frame context initialized:", {
-          fid: context.user.fid,
-          username: context.user.username,
-          hasNotifications: !!context.client.notificationDetails
+          fid: effectiveContext.user.fid,
+          username: effectiveContext.user.username,
+          hasNotifications: Boolean(effectiveContext.client.notificationDetails)
         });
 
-        setFrameContext(context);
+        setFrameContext(effectiveContext as Context.FrameContext);
 
         sdk.on("frameAdded", ({ notificationDetails }) => {
           console.info("Frame added, notification details:", notificationDetails);
@@ -49,15 +62,27 @@ export const FrameProvider = ({ children }: { children: ReactNode }): ReactEleme
         });
 
         sdk.actions.ready();
+        result = undefined;
       } catch (error) {
         console.error("Failed to initialize frame:", error);
+        setFrameContext({
+          user: {
+            fid: 350911,
+            username: 'compusophy',
+          },
+          client: {
+            notificationDetails: undefined
+          }
+        } as Context.FrameContext);
+        result = undefined;
       } finally {
         setIsLoading(false);
       }
+      return result;
     };
 
     if (typeof window !== "undefined") {
-      void initFrame();
+      initFrame().catch(console.error);
       return () => {
         sdk.removeAllListeners();
       };
@@ -66,8 +91,13 @@ export const FrameProvider = ({ children }: { children: ReactNode }): ReactEleme
     return undefined;
   }, []);
 
+  const contextValue = useMemo(() => ({
+    frameContext,
+    isLoading
+  }), [frameContext, isLoading]);
+
   return (
-    <FrameContext.Provider value={{ frameContext, isLoading }}>
+    <FrameContext.Provider value={contextValue}>
       {children}
     </FrameContext.Provider>
   );
@@ -75,7 +105,7 @@ export const FrameProvider = ({ children }: { children: ReactNode }): ReactEleme
 
 export const useFrame = (): FrameContextType => {
   const context = useContext(FrameContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useFrame must be used within a FrameProvider");
   }
   return context;
